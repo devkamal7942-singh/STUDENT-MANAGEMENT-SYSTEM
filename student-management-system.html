@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Roster — Student Records</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1F2A24;
+    --paper:#F6F2E9;
+    --paper-line:#E4DCC9;
+    --gold:#B8862E;
+    --gold-dim:#D9C08E;
+    --sage:#3C4A3F;
+    --sage-soft:#5C6E60;
+    --stamp:#8B3A3A;
+    --stamp-soft:#F1E1DF;
+    --white:#FFFDF8;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    background-image:
+      linear-gradient(var(--paper-line) 1px, transparent 1px);
+    background-size: 100% 42px;
+    background-position: 0 160px;
+  }
+
+  .page{
+    max-width:980px;
+    margin:0 auto;
+    padding:0 28px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    padding:48px 0 28px;
+    border-bottom:3px solid var(--ink);
+    margin-bottom:32px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+
+  .brand h1{
+    font-family:'Source Serif 4', serif;
+    font-weight:700;
+    font-size:2.6rem;
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+
+  .brand p{
+    margin:0;
+    color:var(--sage-soft);
+    font-size:0.95rem;
+    max-width:44ch;
+  }
+
+  .term-badge{
+    font-family:'Source Serif 4', serif;
+    font-style:italic;
+    font-size:1.05rem;
+    color:var(--gold);
+    border:1.5px solid var(--gold-dim);
+    padding:8px 16px;
+    background:var(--white);
+    white-space:nowrap;
+  }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    display:flex;
+    gap:16px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+  }
+
+  .search-wrap{
+    position:relative;
+    flex:1;
+    min-width:220px;
+    max-width:380px;
+  }
+
+  .search-wrap input{
+    width:100%;
+    padding:11px 14px 11px 34px;
+    border:1.5px solid var(--ink);
+    background:var(--white);
+    font-family:'Inter';
+    font-size:0.95rem;
+    color:var(--ink);
+  }
+
+  .search-wrap input:focus{
+    outline:3px solid var(--gold-dim);
+    outline-offset:0;
+  }
+
+  .search-wrap::before{
+    content:"⌕";
+    position:absolute;
+    left:12px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:1.1rem;
+    color:var(--sage-soft);
+    pointer-events:none;
+  }
+
+  .count-line{
+    font-size:0.85rem;
+    color:var(--sage-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .btn{
+    font-family:'Inter';
+    font-weight:600;
+    font-size:0.92rem;
+    padding:11px 20px;
+    border:1.5px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    cursor:pointer;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+  .btn:hover{ background:var(--sage); }
+  .btn:active{ transform: translateY(1px); }
+
+  .btn.ghost{
+    background:transparent;
+    color:var(--ink);
+  }
+  .btn.ghost:hover{ background:var(--ink); color:var(--paper); }
+
+  .btn.small{
+    padding:6px 12px;
+    font-size:0.8rem;
+    border-width:1px;
+  }
+
+  .btn.stamp{
+    border-color:var(--stamp);
+    color:var(--stamp);
+    background:transparent;
+  }
+  .btn.stamp:hover{ background:var(--stamp); color:var(--white); }
+
+  .btn.confirm{
+    border-color:var(--sage);
+    color:var(--white);
+    background:var(--sage);
+  }
+  .btn.confirm:hover{ background:var(--ink); }
+
+  /* ---------- Add Form Panel ---------- */
+  .panel{
+    background:var(--white);
+    border:1.5px solid var(--ink);
+    padding:26px 28px;
+    margin-bottom:32px;
+    display:none;
+  }
+  .panel.open{ display:block; }
+
+  .panel h2{
+    font-family:'Source Serif 4', serif;
+    font-size:1.3rem;
+    margin:0 0 18px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--paper-line);
+  }
+
+  .field-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));
+    gap:16px;
+    margin-bottom:20px;
+  }
+
+  .field label{
+    display:block;
+    font-size:0.78rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--sage-soft);
+    margin-bottom:6px;
+  }
+
+  .field input, .field select{
+    width:100%;
+    padding:9px 11px;
+    border:1.3px solid #C9BFA5;
+    background:var(--paper);
+    font-family:'Inter';
+    font-size:0.95rem;
+    color:var(--ink);
+  }
+  .field input:focus, .field select:focus{
+    outline:none;
+    border-color:var(--gold);
+    background:var(--white);
+  }
+
+  .field.error input, .field.error select{
+    border-color:var(--stamp);
+    background:var(--stamp-soft);
+  }
+  .field .err-msg{
+    color:var(--stamp);
+    font-size:0.78rem;
+    margin-top:5px;
+    display:none;
+  }
+  .field.error .err-msg{ display:block; }
+
+  .panel-actions{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+  }
+
+  /* ---------- Table ---------- */
+  .ledger{
+    width:100%;
+    border-collapse:collapse;
+  }
+
+  .ledger thead th{
+    text-align:left;
+    font-size:0.76rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--sage-soft);
+    font-weight:600;
+    padding:0 12px 10px;
+    border-bottom:2px solid var(--ink);
+  }
+
+  .ledger tbody tr{
+    border-bottom:1px solid var(--paper-line);
+  }
+  .ledger tbody tr:hover{ background: rgba(184,134,46,0.06); }
+
+  .ledger td{
+    padding:14px 12px;
+    font-size:0.94rem;
+    vertical-align:middle;
+  }
+
+  .id-badge{
+    font-family:'Source Serif 4', serif;
+    font-weight:600;
+    color:var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stu-name{
+    font-family:'Source Serif 4', serif;
+    font-size:1.05rem;
+    font-weight:600;
+  }
+  .stu-sub{
+    font-size:0.8rem;
+    color:var(--sage-soft);
+  }
+
+  .status-pill{
+    display:inline-block;
+    padding:3px 10px;
+    font-size:0.75rem;
+    font-weight:600;
+    border:1px solid currentColor;
+  }
+  .status-active{ color:var(--sage); }
+  .status-probation{ color:var(--stamp); }
+  .status-graduated{ color:var(--gold); }
+
+  .row-actions{
+    display:flex;
+    gap:8px;
+    justify-content:flex-end;
+  }
+
+  .inline-edit-row td{
+    padding:16px 12px 20px;
+    background: rgba(184,134,46,0.05);
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:70px 20px;
+    color:var(--sage-soft);
+  }
+  .empty-state .glyph{
+    font-family:'Source Serif 4', serif;
+    font-size:2.4rem;
+    color:var(--gold-dim);
+    margin-bottom:8px;
+  }
+  .empty-state p{ margin:6px 0 18px; }
+
+  footer{
+    margin-top:40px;
+    padding-top:18px;
+    border-top:1px solid var(--paper-line);
+    font-size:0.8rem;
+    color:var(--sage-soft);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  @media (max-width: 720px){
+    .ledger thead{ display:none; }
+    .ledger, .ledger tbody, .ledger tr, .ledger td{ display:block; width:100%; }
+    .ledger tbody tr{ padding:14px 0; }
+    .ledger td{ padding:4px 0; }
+    .row-actions{ justify-content:flex-start; margin-top:10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <div class="brand">
+      <h1>The Roster</h1>
+      <p>A record book for enrolled students — add, look up, amend, and retire entries.</p>
+    </div>
+    <div class="term-badge" id="termBadge">Fall Term 2026</div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Search by name, roll no. or course…" />
+    </div>
+    <div style="display:flex; align-items:center; gap:18px;">
+      <span class="count-line" id="countLine">0 students on record</span>
+      <button class="btn" id="toggleAddBtn">+ Add student</button>
+    </div>
+  </div>
+
+  <div class="panel" id="addPanel">
+    <h2 id="panelTitle">New entry</h2>
+    <form id="studentForm">
+      <input type="hidden" id="editId" value="" />
+      <div class="field-grid">
+        <div class="field" id="f-name">
+          <label for="in-name">Full name</label>
+          <input type="text" id="in-name" placeholder="e.g. Meera Kapoor" />
+          <div class="err-msg">Please enter the student's name.</div>
+        </div>
+        <div class="field" id="f-roll">
+          <label for="in-roll">Roll number</label>
+          <input type="text" id="in-roll" placeholder="e.g. 24BCA017" />
+          <div class="err-msg">Roll number is required and must be unique.</div>
+        </div>
+        <div class="field" id="f-course">
+          <label for="in-course">Course</label>
+          <input type="text" id="in-course" placeholder="e.g. B.Sc Computer Science" />
+          <div class="err-msg">Please enter a course.</div>
+        </div>
+        <div class="field" id="f-year">
+          <label for="in-year">Year</label>
+          <select id="in-year">
+            <option value="1">1st year</option>
+            <option value="2">2nd year</option>
+            <option value="3">3rd year</option>
+            <option value="4">4th year</option>
+          </select>
+        </div>
+        <div class="field" id="f-email">
+          <label for="in-email">Email</label>
+          <input type="email" id="in-email" placeholder="e.g. meera@example.com" />
+          <div class="err-msg">Please enter a valid email address.</div>
+        </div>
+        <div class="field" id="f-status">
+          <label for="in-status">Status</label>
+          <select id="in-status">
+            <option value="active">Active</option>
+            <option value="probation">Probation</option>
+            <option value="graduated">Graduated</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel-actions">
+        <button type="button" class="btn ghost" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn" id="saveBtn">Save entry</button>
+      </div>
+    </form>
+  </div>
+
+  <table class="ledger" id="ledgerTable">
+    <thead>
+      <tr>
+        <th style="width:70px;">Roll no.</th>
+        <th>Student</th>
+        <th>Course</th>
+        <th style="width:70px;">Year</th>
+        <th style="width:110px;">Status</th>
+        <th style="width:150px; text-align:right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <!-- rows injected here -->
+    </tbody>
+  </table>
+
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="glyph">—</div>
+    <p>No matching students on record.</p>
+    <button class="btn ghost small" id="clearSearchBtn">Clear search</button>
+  </div>
+
+  <footer>
+    <span>Records held in this browser session only — refreshing the page clears them.</span>
+    <span id="footerCount"></span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- In-memory data store (session only) ----------
+  // NOTE: This app intentionally does NOT use localStorage/sessionStorage,
+  // since browser storage APIs aren't supported inside this artifact preview.
+  // If you're running this file on your own server, swap `students` for a
+  // proper backend call (fetch to a REST API, etc.) to persist data long-term.
+
+  let students = [
+    { id: 1, name: "Meera Kapoor",  roll: "24BCA017", course: "B.Sc Computer Science", year: "2", email: "meera.kapoor@example.com", status: "active" },
+    { id: 2, name: "Arjun Verma",   roll: "23BCA004", course: "B.Sc Computer Science", year: "3", email: "arjun.verma@example.com",  status: "probation" },
+    { id: 3, name: "Fatima Sheikh", roll: "22BCA011", course: "B.Com Honours",         year: "4", email: "fatima.sheikh@example.com", status: "graduated" },
+    { id: 4, name: "Rohan Das",     roll: "24BCA033", course: "BCA",                   year: "1", email: "rohan.das@example.com",     status: "active" }
+  ];
+
+  let nextId = 5;
+  let searchTerm = "";
+  let editingRowId = null;
+
+  // ---------- DOM refs ----------
+  const tableBody     = document.getElementById('tableBody');
+  const emptyState     = document.getElementById('emptyState');
+  const ledgerTable    = document.getElementById('ledgerTable');
+  const countLine      = document.getElementById('countLine');
+  const footerCount    = document.getElementById('footerCount');
+  const searchInput    = document.getElementById('searchInput');
+  const addPanel       = document.getElementById('addPanel');
+  const toggleAddBtn   = document.getElementById('toggleAddBtn');
+  const cancelBtn      = document.getElementById('cancelBtn');
+  const studentForm    = document.getElementById('studentForm');
+  const panelTitle     = document.getElementById('panelTitle');
+  const saveBtn        = document.getElementById('saveBtn');
+  const editIdField    = document.getElementById('editId');
+  const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+  const inputs = {
+    name: document.getElementById('in-name'),
+    roll: document.getElementById('in-roll'),
+    course: document.getElementById('in-course'),
+    year: document.getElementById('in-year'),
+    email: document.getElementById('in-email'),
+    status: document.getElementById('in-status')
+  };
+
+  const fieldWraps = {
+    name: document.getElementById('f-name'),
+    roll: document.getElementById('f-roll'),
+    course: document.getElementById('f-course'),
+    email: document.getElementById('f-email')
+  };
+
+  // ---------- Helpers ----------
+  function escapeHtml(str){
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function statusLabel(status){
+    return { active: "Active", probation: "Probation", graduated: "Graduated" }[status] || status;
+  }
+
+  function clearFieldErrors(){
+    Object.values(fieldWraps).forEach(el => el.classList.remove('error'));
+  }
+
+  function resetForm(){
+    studentForm.reset();
+    editIdField.value = "";
+    clearFieldErrors();
+    inputs.year.value = "1";
+    inputs.status.value = "active";
+  }
+
+  function openPanelForAdd(){
+    editingRowId = null;
+    resetForm();
+    panelTitle.textContent = "New entry";
+    saveBtn.textContent = "Save entry";
+    addPanel.classList.add('open');
+    inputs.name.focus();
+  }
+
+  function closePanel(){
+    addPanel.classList.remove('open');
+    resetForm();
+  }
+
+  function openPanelForEdit(student){
+    editingRowId = student.id;
+    clearFieldErrors();
+    editIdField.value = student.id;
+    inputs.name.value = student.name;
+    inputs.roll.value = student.roll;
+    inputs.course.value = student.course;
+    inputs.year.value = student.year;
+    inputs.email.value = student.email;
+    inputs.status.value = student.status;
+    panelTitle.textContent = "Amend entry — " + student.roll;
+    saveBtn.textContent = "Update entry";
+    addPanel.classList.add('open');
+    inputs.name.focus();
+    addPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function validate(){
+    clearFieldErrors();
+    let valid = true;
+
+    if(!inputs.name.value.trim()){
+      fieldWraps.name.classList.add('error');
+      valid = false;
+    }
+    if(!inputs.roll.value.trim()){
+      fieldWraps.roll.classList.add('error');
+      valid = false;
+    } else {
+      const dup = students.find(s => s.roll.toLowerCase() === inputs.roll.value.trim().toLowerCase() && s.id != editIdField.value);
+      if(dup){
+        fieldWraps.roll.classList.add('error');
+        fieldWraps.roll.querySelector('.err-msg').textContent = "That roll number is already on record.";
+        valid = false;
+      }
+    }
+    if(!inputs.course.value.trim()){
+      fieldWraps.course.classList.add('error');
+      valid = false;
+    }
+    const emailVal = inputs.email.value.trim();
+    if(emailVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)){
+      fieldWraps.email.classList.add('error');
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  // ---------- CRUD operations ----------
+  function createStudent(data){
+    students.push({ id: nextId++, ...data });
+  }
+
+  function updateStudent(id, data){
+    const idx = students.findIndex(s => s.id == id);
+    if(idx > -1){
+      students[idx] = { ...students[idx], ...data };
+    }
+  }
+
+  function deleteStudent(id){
+    students = students.filter(s => s.id != id);
+    render();
+  }
+
+  // ---------- Render ----------
+  function getFiltered(){
+    if(!searchTerm) return students;
+    const t = searchTerm.toLowerCase();
+    return students.filter(s =>
+      s.name.toLowerCase().includes(t) ||
+      s.roll.toLowerCase().includes(t) ||
+      s.course.toLowerCase().includes(t)
+    );
+  }
+
+  function render(){
+    const list = getFiltered();
+
+    tableBody.innerHTML = "";
+
+    if(list.length === 0){
+      ledgerTable.style.display = "none";
+      emptyState.style.display = "block";
+    } else {
+      ledgerTable.style.display = "table";
+      emptyState.style.display = "none";
+
+      list
+        .slice()
+        .sort((a,b) => a.roll.localeCompare(b.roll))
+        .forEach(s => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><span class="id-badge">${escapeHtml(s.roll)}</span></td>
+            <td>
+              <div class="stu-name">${escapeHtml(s.name)}</div>
+              <div class="stu-sub">${escapeHtml(s.email || 'no email on file')}</div>
+            </td>
+            <td>${escapeHtml(s.course)}</td>
+            <td>${escapeHtml(s.year)}${ordinalSuffix(s.year)}</td>
+            <td><span class="status-pill status-${s.status}">${statusLabel(s.status)}</span></td>
+            <td>
+              <div class="row-actions">
+                <button class="btn ghost small" data-action="edit" data-id="${s.id}">Edit</button>
+                <button class="btn stamp small" data-action="delete" data-id="${s.id}">Remove</button>
+              </div>
+            </td>
+          `;
+          tableBody.appendChild(tr);
+        });
+    }
+
+    countLine.textContent = students.length + (students.length === 1 ? " student on record" : " students on record");
+    footerCount.textContent = searchTerm ? (list.length + " of " + students.length + " shown") : "";
+  }
+
+  function ordinalSuffix(n){
+    n = parseInt(n, 10);
+    if(n === 1) return "st";
+    if(n === 2) return "nd";
+    if(n === 3) return "rd";
+    return "th";
+  }
+
+  // ---------- Event wiring ----------
+  toggleAddBtn.addEventListener('click', () => {
+    if(addPanel.classList.contains('open') && editingRowId === null){
+      closePanel();
+    } else {
+      openPanelForAdd();
+    }
+  });
+
+  cancelBtn.addEventListener('click', closePanel);
+
+  studentForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if(!validate()) return;
+
+    const data = {
+      name: inputs.name.value.trim(),
+      roll: inputs.roll.value.trim(),
+      course: inputs.course.value.trim(),
+      year: inputs.year.value,
+      email: inputs.email.value.trim(),
+      status: inputs.status.value
+    };
+
+    if(editIdField.value){
+      updateStudent(editIdField.value, data);
+    } else {
+      createStudent(data);
+    }
+
+    closePanel();
+    render();
+  });
+
+  tableBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const id = btn.getAttribute('data-id');
+    const action = btn.getAttribute('data-action');
+
+    if(action === 'edit'){
+      const student = students.find(s => s.id == id);
+      if(student) openPanelForEdit(student);
+    }
+
+    if(action === 'delete'){
+      const student = students.find(s => s.id == id);
+      if(student && confirm(`Remove ${student.name} (${student.roll}) from the roster? This cannot be undone.`)){
+        deleteStudent(id);
+      }
+    }
+  });
+
+  searchInput.addEventListener('input', (e) => {
+    searchTerm = e.target.value.trim();
+    render();
+  });
+
+  clearSearchBtn.addEventListener('click', () => {
+    searchTerm = "";
+    searchInput.value = "";
+    render();
+  });
+
+  // ---------- Init ----------
+  render();
+})();
+</script>
+
+</body>
+</html>
